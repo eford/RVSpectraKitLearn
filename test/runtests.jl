@@ -1,4 +1,4 @@
-using RvSpectraKitLearn.jl
+using RvSpectraKitLearn
 using Base.Test
 
 # write your own tests here
