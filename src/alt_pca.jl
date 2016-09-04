@@ -93,7 +93,7 @@ function fit_pca_eford{T}(X::Array{T,2}; num_components::Integer=4, tol::Float64
 end
 
 # test that eford's PCA routine is giving accurate results for dataset X and min(num_components,number of components kept by Julia's PCA routine)
-function RvSpectraKitLearn.test_pca_eford{T}(obs::Array{T,2}; num_components::Integer=4 )
+function test_pca_eford{T}(obs::Array{T,2}; num_components::Integer=4 )
   pca_out = fit_pca_default(obs)
   (pca_eford_mu, pca_eford_out, pca_eford_scores) = fit_pca_eford(obs,num_components=num_components)
   for i in 1:min(size(projection(pca_out),2),size(pca_eford_out,2))
