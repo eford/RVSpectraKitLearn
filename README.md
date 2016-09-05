@@ -8,7 +8,7 @@
 [![codecov.io](http://codecov.io/github/eford/RvSpectraKitLearn.jl/coverage.svg?branch=master)](http://codecov.io/github/eford/RvSpectraKitLearn.jl?branch=master)
 
 
-I implemented the generalized PCA algorithm that I've described conceputally for our proposal.  
+I implemented the generalized PCA algorithm that I had previously described only conceputally for our proposal.  
 The code is at https://github.com/eford/RVSpectraKitLearn.jl
 
 Some instructions below for trying it out...
@@ -19,7 +19,8 @@ Download and install a v0.5 release candidate of Julia from http://julialang.org
 
 Start julia
 
-```shell julia
+```shell 
+julia
 ```
 
 Install the package
@@ -27,7 +28,7 @@ Install the package
 Pkg.clone("git@github.com:eford/RvSpectraKitLearn.jl.git")  # Install package
 ```
 
-Edit ath_to_spectra.jl to point to the directory with your spectra, perhaps like
+Edit the file path_to_spectra.jl to point to the directory with your spectra, perhaps like
 ```julia
 path_to_spectra = "C:\\Users\\eford\\Box Sync\\SOAP simulations\\Aug2016_workshop\\SOAP_Spectra\\planet_10ms_150k"
 path_to_spectra = joinpath(homedir(),"SOAP_Spectra/planet_10ms_150k")
@@ -52,7 +53,7 @@ julia examples/ex1.jl
 
 Interoperability
 -----------------
-If you want to call Python from Julia, see https://github.com/stevengj/PyCall.jl
+If you want to call Python from Julia, see https://github.com/stevengj/PyCall.jl .  
 If you want to call Julia from python, see https://github.com/JuliaInterop/pyjulia  (I haven't tested this).
 
 
