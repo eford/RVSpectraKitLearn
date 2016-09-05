@@ -1,5 +1,7 @@
+using RvSpectraKitLearn
 using MultivariateStats
 
+# Likely need to update this to point to directory containing the spectra you wish to analyze
 include(joinpath(Pkg.dir("RvSpectraKitLearn"),"path_to_spectra.jl"))
 cd(path_to_spectra)  
 
