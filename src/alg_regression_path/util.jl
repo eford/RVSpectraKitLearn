@@ -8,7 +8,7 @@ function make_B(p::Integer, q::Integer; frac_active::Float64 = 0.1, bias::Float6
   return B
 end
 
-function print_path{T<:Number}(gamma_list::Vector,Z_list::Array{T,3})
+function print_alr_path{T<:Number}(gamma_list::Vector,Z_list::Array{T,3})
   @assert length(gamma_list) == size(Z_list,1)
   for i in 1:length(gamma_list)
     Z = Z_list[i,:,:]
@@ -21,7 +21,7 @@ function print_path{T<:Number}(gamma_list::Vector,Z_list::Array{T,3})
   end
 end
 
-function print_path{T<:Number}(gamma_list::Vector,Z_list::Array{T,3},X::Array{T,2},Y::Array{T,2})
+function print_alr_path{T<:Number}(gamma_list::Vector,Z_list::Array{T,3},X::Array{T,2},Y::Array{T,2})
   @assert length(gamma_list) == size(Z_list,1)
   for i in 1:length(gamma_list)
     Z = reshape(Z_list[i,:,:],(size(Z_list,2),size(Z_list,3)))

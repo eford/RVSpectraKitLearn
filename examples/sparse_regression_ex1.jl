@@ -1,3 +1,5 @@
+using RvSpectraKitLearn
+
 function make_B(p::Integer, q::Integer; frac_active::Float64 = 0.1, bias::Float64 = 0.0, sigma::Float64 = 1.0)
   B = zeros(p,q)
   for i in 1:p, j in 1:q
@@ -22,8 +24,6 @@ n = 25
  Y_crossvalid = X_crossvalid*B + sigma_y*randn(n,q)
  println("B norms: ", length(find(B)), "  ", sumabs(B), " ", sumabs2(B))
 
-#using PyPlot
-length(find(B))
 
 (gamma_list, Z_list)  = fit_arp_slr_2d(X,Y,stepsize=1.05,max_itterations=1000, min_active=floor(Int64,p*q*frac_active*0.5))
  #print_path(gamma_list, Z_list,X,Y)
@@ -45,9 +45,6 @@ for i in 1:4:length(keep_path)
   @printf "%d %5.2f: %4d %8g  X^2= %8g %8g %8g\n" j gamma_list[j] L0[j] L1[j] rchisq_alr  rchisq_refit  rchisq_cv
 end
 
-chisq_refit
-L0
-chisq
 using PyPlot
 
 plot(L0,chisq,"r-")
