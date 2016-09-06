@@ -12,7 +12,7 @@ include("deriv_spectra_simple.jl")
 
 export fit_arp_slr_2d, refit_arp_slr_2d
 include("alg_regression_path/sparse_linear_regression.jl")
-export print_alr_path, compute_alr_path_stats, compute_alr_path_chisq
+export print_alr_path, compute_alr_path_stats, compute_alr_path_chisq!
 include("alg_regression_path/util.jl")
 
 #export fit_arp_rrr
