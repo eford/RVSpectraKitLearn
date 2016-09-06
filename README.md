@@ -8,7 +8,7 @@
 [![codecov.io](http://codecov.io/github/eford/RvSpectraKitLearn.jl/coverage.svg?branch=master)](http://codecov.io/github/eford/RvSpectraKitLearn.jl?branch=master)
 
 
-I implemented the generalized PCA algorithm that I had previously described only conceputally for our proposal.  
+I implemented the generalized PCA algorithm that I had previously described only conceputally for our proposal.
 The code is at https://github.com/eford/RVSpectraKitLearn.jl
 
 Some instructions below for trying it out...
@@ -19,7 +19,7 @@ Download and install a v0.5 release candidate of Julia from http://julialang.org
 
 Start julia
 
-```shell 
+```shell
 julia
 ```
 
@@ -44,16 +44,16 @@ Example usage
 -------------
 You can see how to use as an example (very similar to tests), either from julia
 ```julia
-include(joinpath(Pkg.dir("RvSpectraKitLearn"),"examples","ex1.jl"))
+include(joinpath(Pkg.dir("RvSpectraKitLearn"),"examples","gpca_ex1.jl"))
 ```
 or from the shell
 ```shell
-julia examples/ex1.jl
+julia examples/gpca_ex1.jl
 ```
 
 Interoperability
 -----------------
-If you want to call Python from Julia, see https://github.com/stevengj/PyCall.jl .  
+If you want to call Python from Julia, see https://github.com/stevengj/PyCall.jl .
 If you want to call Julia from python, see https://github.com/JuliaInterop/pyjulia  (I haven't tested this).
 
 

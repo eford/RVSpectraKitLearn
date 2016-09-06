@@ -4,8 +4,8 @@ using Base.Test
 # write your own tests here
 @test 1 == 1
 
-path_to_spectra = "C:\\Users\\eford\\Box Sync\\SOAP simulations\\Aug2016_workshop\\SOAP_Spectra\\planet_10ms_150k"
-cd(path_to_spectra)  
+include(joinpath(Pkg.dir("RvSpectraKitLearn"),"path_to_spectra.jl"))
+cd(path_to_spectra)
 
 (datafiles, phases) = get_filenames();
 (lambda, obs) = read_filelist(datafiles);
