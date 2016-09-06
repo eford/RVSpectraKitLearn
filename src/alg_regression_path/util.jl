@@ -54,31 +54,31 @@ function compute_alr_path_stats{T<:Number}(Z_list::Array{T,3}; target=nothing)
   return(L0_Z_list,L1_Z_list,L2_Z_list,rmsdelta_list)
 end
 
-function compute_alr_path_chisq{T<:Number}(Z_list::Array{T,3},X::Array{T,2},Y::Array{T,2})
+function compute_alr_path_chisq!{T<:Number}(Z_list::Array{T,3},X::Array{T,2},Y::Array{T,2})
   num_it = size(Z_list,1)
   chisq_list = zeros(T,num_it)
   chisq_refit_list = zeros(T,num_it)
   for i in 1:num_it
     Z =  reshape(Z_list[i,:,:],(size(Z_list,2),size(Z_list,3)))
     chisq_list[i] = sumabs2(Y-X*Z)
-    #(Zp, chisq_refit) = refit_arp_slr_2d(X,Y,Z)
-    #chisq_refit_list[i] = chisq_refit
+    (Zp, chisq_refit) = refit_arp_slr_2d(X,Y,Z)
+    Z[i,:,:] = Zp
+    chisq_refit_list[i] = chisq_refit
   end
   return (chisq_list, chisq_refit_list)
 end
 
-function compute_alr_path_chisq{T<:Number}(Z_list::Array{T,3}, X::Array{T,2}, Y::Array{T,2}, Xcv::Array{T,2}, Ycv::Array{T,2} )
+function compute_alr_path_chisq!{T<:Number}(Z_list::Array{T,3}, X::Array{T,2}, Y::Array{T,2}, Xcv::Array{T,2}, Ycv::Array{T,2} )
   num_it = size(Z_list,1)
   chisq_list = zeros(T,num_it)
   chisq_refit_list = zeros(T,num_it)
   chisq_cv_list = zeros(T,num_it)
   for i in 1:num_it
     Z =  reshape(Z_list[i,:,:],(size(Z_list,2),size(Z_list,3)))
-    chisq_list[i] = sumabs2(Y-X*Z)
-    chisq_cv_list[i] = sumabs2(Ycv-Xcv*Z)
-    #(Zp, chisq_refit, chisq_cv) = refit_arp_slr_2d(X,Y,Z,Xcv,Ycv)
-    #chisq_refit_list[i] = chisq_refit
-    #chisq_cv_list[i] = chisq_cv
+    (Zp, chisq_refit, chisq_cv) = refit_arp_slr_2d(X,Y,Z,Xcv,Ycv)
+    Z[i,:,:] = Zp
+    chisq_refit_list[i] = chisq_refit
+    chisq_cv_list[i] = chisq_cv
   end
   return (chisq_list, chisq_refit_list, chisq_cv_list)
 end

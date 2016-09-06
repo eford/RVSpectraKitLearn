@@ -70,25 +70,20 @@ function fit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}; stepsize::Float
   return (gamma_list,Z_list[1:last_itteration,:,:])
 end
 
-
-using Optim
-
+# Simple linear regression to update the non-zero coefficients
 function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2})
   @assert size(X,1) == size(Y,1)
   p = size(X,2)
-
-  # Function to minimize
-  score(Z::Array{T,2}) = sumabs2(Y-X*Z)
-  idx_active = find(B)
-  function score(param::Array{Float64,1})
-     Z = copy(B)
-     Z[idx_active] = param
-     score(Z)
-  end
-  opt_result = optimize(score,B[idx_active],LBFGS())
   Z = copy(B)
-  Z[idx_active] = Optim.minimizer(opt_result)
-  return ( Z,Optim.minimum(opt_result) )
+  for col in 1:size(B,2)         # Separate mutliple parameter regression problems into 1 at a time
+    idx_active = find(B[:,col])  # find non-zero entries
+    Xact = X[:,idx_active]
+    Bact = (Xact'*Xact) \ Xact'*Y
+    Z[idx_active,col] = Bact
+  end
+  pred = X*Z
+  chisq = sumabs2(Y-pred)
+  return ( Z,chisq )
 end
 
 function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2}, Xcv::Array{T,2}, Ycv::Array{T,2} )
@@ -100,4 +95,27 @@ function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2}
   return (Z,chisq_refit, chisq_cv )
 end
 
+
+#=
+using Optim
+
+function refit_arp_slr_2d_nonlin{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2})
+  @assert size(X,1) == size(Y,1)
+  p = size(X,2)
+
+  # Function to minimize
+  score(Z::Array{T,2}) = sumabs2(Y-X*Z)
+  idx_active = find(B)
+  function score(param::Array{Float64,1})
+     Z = copy(B)
+     Z[idx_active] = param
+     score(Z)
+  end
+  # This is much slower than linear regression.  Left code in case the problem becomes weakly non-linear in future
+  opt_result = optimize(score,B[idx_active],LBFGS())
+  Z = copy(B)
+  Z[idx_active] = Optim.minimizer(opt_result)
+  return ( Z,Optim.minimum(opt_result) )
+end
+=#
 
