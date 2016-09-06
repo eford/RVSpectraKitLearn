@@ -32,6 +32,10 @@ function find_important_lamba{T}(lambda::Array{T,1}, obs::Array{T,2}, phases::Ar
 end
 
 (lambda_range, beta) = find_important_lamba(lambda,obs,phases,chunk_size=1500,frac_to_keep=[0.25,0.4])
+#Pkg.add("JLD")  # If you don't already have JLD installed
+using JLD        # Since this takes a while to compute, we'll save the results to disk
+save("important_lambda_0.25_0.4.jld", "idx", lambda_range, "lambda", lambda[lambda_range], "beta", beta)
+
 #=
 # Plot which wavelengths are being used from the last itteration of the algorithm regularization path algorithm
 =#
