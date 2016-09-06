@@ -10,7 +10,7 @@ function make_B(p::Integer, q::Integer; frac_active::Float64 = 0.1, bias::Float6
   return B
 end
 
-# Test eford alg
+# Test sparse regression via  alg
 n = 25
  p = 100
  q = 100
@@ -24,11 +24,9 @@ n = 25
  Y_crossvalid = X_crossvalid*B + sigma_y*randn(n,q)
  println("B norms: ", length(find(B)), "  ", sumabs(B), " ", sumabs2(B))
 
-
 (gamma_list, Z_list)  = fit_arp_slr_2d(X,Y,stepsize=1.05,max_itterations=1000, min_active=floor(Int64,p*q*frac_active*0.5))
-
 (L0,L1,L2,rmsdelta) = compute_alr_path_stats(Z_list,target=B)
-(chisq,chisq_refit,chisq_cv) = compute_alr_path_chisq(Z_list,X,Y,X_crossvalid,Y_crossvalid)
+(chisq,chisq_refit,chisq_cv) = compute_alr_path_chisq!(Z_list,X,Y,X_crossvalid,Y_crossvalid)
 print_alr_path(gamma_list, Z_list,X,Y)
 
 

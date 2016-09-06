@@ -78,8 +78,8 @@ function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2}
   for col in 1:size(B,2)         # Separate mutliple parameter regression problems into 1 at a time
     idx_active = find(B[:,col])  # find non-zero entries
     Xact = X[:,idx_active]
-    Bact = (Xact'*Xact) \ Xact'*Y
-    Z[idx_active,col] = Bact
+    Bact = (Xact'*Xact) \ (Xact'*Y[:,col])
+    Z[idx_active,col] = vec(Bact)
   end
   pred = X*Z
   chisq = sumabs2(Y-pred)
