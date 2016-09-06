@@ -1,5 +1,8 @@
 module RvSpectraKitLearn
 
+using Compat
+import Compat.view
+
 export fit_gen_pca_rv, est_rvs_from_pc
 include("alt_pca.jl")
 
