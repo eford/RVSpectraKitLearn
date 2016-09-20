@@ -19,6 +19,71 @@ function d2kerneldx2_matern32(d::Float64; rho::Float64 = 1.0, sigmasq::Float64 =
   -sigmasq * (3/rho^2) * (1-x)*exp(-x)
 end
 
+
+function nuttall_kernel{T<:Real}(x::T; rho::T = 1.0)
+   const   a0 = 0.355768
+   const   a1 = 0.487396
+   const   a2 = 0.144232
+   const   a3 = 0.012604
+   if abs(x)>rho return zero(T) end
+   cpx = cospi(x/rho)
+   spx = sinpi(x/rho)
+   c2px = cpx*cpx-spx*spx
+   return a0+a1*cpx+(a2+a3*cpx)*cpx*cpx-(a2+3*a3*cpx)*spx*spx
+end
+
+function nuttall_dkerneldx{T<:Real}(x::T; rho::T = 1.0)
+   const   a0 = 0.355768
+   const   a1 = 0.487396
+   const   a2 = 0.144232
+   const   a3 = 0.012604
+   if abs(x)>rho return zero(T) end
+   cpx = cospi(x/rho)
+   spx = sinpi(x/rho)
+   c2px = cpx*cpx-spx*spx
+   s2px = 2*cpx*spx
+   s3px = spx*c2px+cpx*s2px
+   return -pi/rho*(a1*spx+2*a2*s2px+3*a3*s3px)
+end
+
+function nuttall_d2kerneldx2{T<:Real}(x::T; rho::T = 1.0)
+   const   a0 = 0.355768
+   const   a1 = 0.487396
+   const   a2 = 0.144232
+   const   a3 = 0.012604
+   if abs(x)>rho return zero(T) end
+   cpx = cospi(x/rho)
+   spx = sinpi(x/rho)
+   c2px = cpx*cpx-spx*spx
+   c3px = cpx*(cpx*cpx-3*spx*spx)
+   return -(pi/rho)^2*(a1*cpx+4*a2*c2px+9*a3*c3px)
+end
+
+
+function matern32_sparse_kernel{T<:Real}(x::T; rho::T = 1.0, sigmasq::T = 1.0)
+  km = kernel_matern32(x,rho=rho,sigmasq=sigmasq)
+  kn = nuttall_kernel(x,rho=rho*4)
+  km*kn
+end
+
+function dkerneldx_matern32_sparse{T<:Real}(x::T; rho::T = 1.0, sigmasq::T = 1.0)
+  km = kernel_matern32(x,rho=rho,sigmasq=sigmasq)
+  kn = nuttall_kernel(x,rho=rho*4)
+  dkmdx = dkerneldx_matern32(x,rho=rho,sigmasq=sigmasq)
+  dkndx = nuttall_dkerneldx(x,rho=rho*4)
+  km*dkndx+kn*dkmdx
+end
+
+function d2kerneldx2_matern32_sparse{T<:Real}(x::T; rho::T = 1.0, sigmasq::T = 1.0)
+  km = kernel_matern32(x,rho=rho,sigmasq=sigmasq)
+  kn = nuttall_kernel(x,rho=rho*4)
+  dkmdx = dkerneldx_matern32(x,rho=rho,sigmasq=sigmasq)
+  dkndx = nuttall_dkerneldx(x,rho=rho*4)
+  d2kmdx2 = d2kerneldx2_matern32(x,rho=rho,sigmasq=sigmasq)
+  d2kndx2 = nuttall_d2kerneldx2(x,rho=rho*4)
+  km*d2kndx2+2*dkndx*dkmdx+kn*d2kmdx2
+end
+
 function make_kernel_data{T}(x::AbstractArray{T,1}, kernel::Function;
 			sigmasq_obs::AbstractArray{T,1} = zeros(length(x)),
 			sigmasq_cor::T = 1.0, rho::T = 1.0)
@@ -67,18 +132,42 @@ function make_kernel_d2matern32dx2_obs_pred{T}(xobs::AbstractArray{T,1}, xpred::
   make_kernel_obs_pred(xobs, xpred, d2kerneldx2_matern32, sigmasq_cor=sigmasq_cor, rho=rho)
 end
 
+function make_kernel_matern32_sparse_data{T}(x::AbstractArray{T,1};
+			sigmasq_obs::AbstractArray{T,1} = zeros(length(x)),
+			sigmasq_cor::T = 1.0, rho::T = 1.0)
+  make_kernel_data(x, matern32_sparse_kernel, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
+end
+
+function make_kernel_matern32_sparse_obs_pred{T}(xobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
+			#sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(x)),
+			sigmasq_cor::T = 1.0, rho::T = 1.0)
+  make_kernel_obs_pred(xobs, xpred, matern32_sparse_kernel, sigmasq_cor=sigmasq_cor, rho=rho)
+end
+
+function make_kernel_dmatern32dx_sparse_obs_pred{T}(xobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
+			#sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(x)),
+			sigmasq_cor::T = 1.0, rho::T = 1.0)
+  make_kernel_obs_pred(xobs, xpred, dkerneldx_matern32_sparse, sigmasq_cor=sigmasq_cor, rho=rho)
+end
+
+function make_kernel_d2matern32dx2_sparse_obs_pred{T}(xobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
+			#sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(x)),
+			sigmasq_cor::T = 1.0, rho::T = 1.0)
+  make_kernel_obs_pred(xobs, xpred, d2kerneldx2_matern32_sparse, sigmasq_cor=sigmasq_cor, rho=rho)
+end
+
 function predict_mean{T}(xobs::AbstractArray{T,1}, yobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
 			sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
-  kobs = make_kernel_matern32_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
-  kobs_pred = make_kernel_matern32_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs = make_kernel_matern32_sparse_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred = make_kernel_matern32_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   alpha = kobs \ yobs
   pred_mean = kobs_pred' * alpha
 end
 
 function predict_deriv{T}(xobs::AbstractArray{T,1}, yobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
 			sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
-  kobs = make_kernel_matern32_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
-  kobs_pred_deriv = make_kernel_dmatern32dx_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs = make_kernel_matern32_sparse_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred_deriv = make_kernel_dmatern32dx_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   alpha = kobs \ yobs
   pred_deriv = kobs_pred_deriv' * alpha
 end
@@ -86,7 +175,7 @@ end
 function predict_deriv2{T}(xobs::AbstractArray{T,1}, yobs::AbstractArray{T,1}, xpred::AbstractArray{T,1};
 			sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
   kobs = make_kernel_matern32_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
-  kobs_pred_deriv2 = make_kernel_d2matern32dx2_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred_deriv2 = make_kernel_d2matern32dx2_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   alpha = kobs \ yobs
   pred_deriv = kobs_pred_deriv2' * alpha
 end
@@ -95,20 +184,21 @@ function predict_mean_and_derivs{T}(xobs::AbstractArray{T,1}, yobs::AbstractArra
 			sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
   kobs = make_kernel_matern32_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
   alpha = kobs \ yobs
-  kobs_pred = make_kernel_matern32_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred = make_kernel_matern32_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   pred_mean = kobs_pred' * alpha
-  kobs_pred_deriv = make_kernel_dmatern32dx_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred_deriv = make_kernel_dmatern32dx_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   pred_deriv = kobs_pred_deriv' * alpha
-  kobs_pred_deriv2 = make_kernel_d2matern32dx2_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs_pred_deriv2 = make_kernel_d2matern32dx2_sparse_obs_pred(xobs,xpred, sigmasq_cor=sigmasq_cor, rho=rho)
   pred_deriv2 = kobs_pred_deriv2' * alpha
   return (pred_mean, pred_deriv, pred_deriv2)
 end
 
 function gp_marginal{T}(xobs::AbstractArray{T,1}, yobs::AbstractArray{T,1};
 			sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
-  kobs = make_kernel_matern32_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
+  kobs = make_kernel_matern32_sparse_data(xobs, sigmasq_obs=sigmasq_obs, sigmasq_cor=sigmasq_cor, rho=rho)
   -0.5*( invquad(kobs, yobs) + logdet(kobs) + length(xobs)*log(2pi) )
 end
+
 
 function calc_gp_marginal_on_segments{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,1};
                                 sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0,
@@ -147,7 +237,7 @@ end
 
 
 
-function calc_doppler_component{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,1};
+function calc_doppler_component_gp{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,1};
                                 sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0,
                                 half_chunck_size::Integer = 100)
    lambda.*calc_gp_on_segments(predict_deriv,lambda, flux, sigmasq_obs=sigmasq_obs,	sigmasq_cor=sigmasq_cor, rho=rho, half_chunck_size=half_chunck_size)
@@ -176,20 +266,20 @@ function calc_gp_on_segments{T}(predict_gp::Function, lambda::AbstractArray{T,1}
   output
 end
 
-function calc_doppler_component{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,2};
-                                sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
-  doppler_basis = calc_doppler_component(lambda,vec(mean(flux,2)),sigmasq_obs=sigmasq_obs,sigmasq_cor=sigmasq_cor,rho=rho)
+function calc_doppler_component_gp{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,2};
+                                sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
+  doppler_basis = calc_doppler_component_gp(lambda,vec(mean(flux,2)),sigmasq_obs=sigmasq_obs,sigmasq_cor=sigmasq_cor,rho=rho)
 end
 
-function calc_doppler_quadratic_term{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,1};
+function calc_doppler_quadratic_term_gp{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,1};
                                 sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0,
                                 half_chunck_size::Integer = 100)
    0.5*lambda.^2.*calc_gp_on_segments(predict_deriv2,lambda, flux, sigmasq_obs=sigmasq_obs,	sigmasq_cor=sigmasq_cor, rho=rho, half_chunck_size=half_chunck_size)
 end
 
-function calc_doppler_quadratic_term{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,2};
-                                     sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(xobs)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
-  doppler_quad_term = calc_doppler_quadratic_term(lambda,vec(mean(flux,2)),sigmasq_obs=sigmasq_obs,sigmasq_cor=sigmasq_cor,rho=rho)
+function calc_doppler_quadratic_term_gp{T}(lambda::AbstractArray{T,1}, flux::AbstractArray{T,2};
+                                     sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0)
+  doppler_quad_term = calc_doppler_quadratic_term_gp(lambda,vec(mean(flux,2)),sigmasq_obs=sigmasq_obs,sigmasq_cor=sigmasq_cor,rho=rho)
 end
 
 
