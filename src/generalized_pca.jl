@@ -8,10 +8,10 @@ function fit_gen_pca_rv{T}(X::Array{T,2}, fixed_comp::Array{T,1}; quad_term::Arr
   scores = zeros(num_spectra,num_components)
   mu = vec(mean(X,2))
   Xtmp = X.-mu                               # perform PCA after subtracting off mean
-  totalvar = sumabs2(Xtmp)
+  totalvar = sum(abs2,Xtmp)
   fracvar = zeros(num_components)
   M[:,1] = fixed_comp                        # Force fixed (i.e., Doppler) component to replace first PCA component
-  fixed_comp_norm = 1/sumabs2(fixed_comp)
+  fixed_comp_norm = 1/sum(abs2,fixed_comp)
   for i in 1:num_spectra
     scores[i,1] = z = (dot(view(Xtmp,:,i),fixed_comp)*fixed_comp_norm)  # Normalize differently, so scores are z (i.e., doppler shift)
 	  Xtmp[:,i] -= z*fixed_comp
@@ -19,17 +19,17 @@ function fit_gen_pca_rv{T}(X::Array{T,2}, fixed_comp::Array{T,1}; quad_term::Arr
       Xtmp[:,i] -= 0.5*z*z*quad_term   # subtract off projection onto fixed component and quadratic term separately
     end
   end
-  fracvar[1] = sumabs2(Xtmp)/totalvar
-  #println("# sumabs2(Xtmp) = ", sumabs2(Xtmp) )
-  #println("# j = ", 1, " sumabs2(Xtmp) = ", sumabs2(Xtmp), " frac_var_remain= ", fracvar[1] )
+  fracvar[1] = sum(abs2,Xtmp)/totalvar
+  #println("# sum(abs2,Xtmp) = ", sum(abs2,Xtmp) )
+  #println("# j = ", 1, " sum(abs2,Xtmp) = ", sum(abs2,Xtmp), " frac_var_remain= ", fracvar[1] )
   for j in 2:num_components
     compute_pca_component!(Xtmp,view(M,:,j),s,tol=tol,max_it=max_it)
     for i in 1:num_spectra
-       scores[i,j] = dot(view(Xtmp,:,i),view(M,:,j)) #/sumabs2(view(M,:,j-1))
+       scores[i,j] = dot(view(Xtmp,:,i),view(M,:,j)) #/sum(abs2,view(M,:,j-1))
        Xtmp[:,i] .-= scores[i,j]*view(M,:,j)
 	  end
-    fracvar[j] = sumabs2(Xtmp)/totalvar
-    println("# j = ", j, " sumabs2(Xtmp) = ", sumabs2(Xtmp), " frac_var_remain= ", fracvar[j] )
+    fracvar[j] = sum(abs2,Xtmp)/totalvar
+    println("# j = ", j, " sum(abs2,Xtmp) = ", sum(abs2,Xtmp), " frac_var_remain= ", fracvar[j] )
   end
   return (mu,M,scores)
 end
@@ -40,7 +40,7 @@ function est_rvs_from_pc{T}(X::Array{T,2}, mu::Vector{T}, doppler_comp::Vector{T
   speed_of_light = 3.0e8
   rv = zeros(num_spectra)
   Xtmp = X.-mu
-  fixed_comp_norm = 1/sumabs2(doppler_comp)
+  fixed_comp_norm = 1/sum(abs2,doppler_comp)
   for i in 1:num_spectra
       rv[i] = dot(Xtmp[:,i],doppler_comp)*fixed_comp_norm*speed_of_light
   end

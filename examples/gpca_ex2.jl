@@ -10,7 +10,7 @@ cd(path_to_spectra)
 
 sampling = 3.0
 planet_amplitude = 10.0
-rvs_true = -planet_amplitude*cos(2pi*phases)
+rvs_true = -planet_amplitude*cos.(2pi*phases)
 
 snr_list = [ 300.0, 200.0, 150.0, 100.0, 80.0, 60.0, 40.0 ]
 rms_simple_list = Array(Float64,0)
