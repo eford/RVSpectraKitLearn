@@ -13,7 +13,7 @@ lambda_min = 4500
  idx_max = findlast(x->lambda_min<x<lambda_max,lambda)
  lambda_range = idx_min:idx_max
 
-Y = reshape(-10.0*cos(phases*2pi),(length(phases),1))
+Y = reshape(-10.0*cos.(phases*2pi),(length(phases),1))
  X = obs[lambda_range,:]'
  @assert size(X,1) == size(Y,1)
  n = size(X,1)

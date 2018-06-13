@@ -9,16 +9,16 @@ cd(path_to_spectra)
 
 function find_important_lamba{T}(lambda::Array{T,1}, obs::Array{T,2}, phases::Array{T,1};
                                  chunk_size::Integer=1500, frac_to_keep = [0.2,0.5] )
-  Y = reshape(-10.0*cos(phases*2pi),(length(phases),1))
+  Y = reshape(-10.0*cos.(phases*2pi),(length(phases),1))
  beta = ones(length(lambda)) # coefficients
  new_beta = copy(beta)
  for i in 1:length(frac_to_keep)
   idx_active = find(beta)
   println("i=",i," len=",length(idx_active))
-  num_chunks = ceil(Int64,length(idx_active)/chunck_size)
+  num_chunks = ceil(Int64,length(idx_active)/chunk_size)
   for c in 1:num_chunks
-    idx_min = 1+(c-1)*chunck_size
-    idx_max = min(c*chunck_size,length(idx_active))
+    idx_min = 1+(c-1)*chunk_size
+    idx_max = min(c*chunk_size,length(idx_active))
     lambda_range = idx_active[idx_min:idx_max]
     #println("idx=",idx_min,"-",idx_max,"  active=",idx_active[idx_min],"-",idx_active[idx_max]," lambda=",lambda[idx_active[idx_min]],"-",lambda[idx_active[idx_max]])
     X = obs[lambda_range,:]'

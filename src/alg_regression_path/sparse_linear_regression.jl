@@ -53,13 +53,13 @@ function fit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}; stepsize::Float
     U = U + B - Z
     num_active = length(find(Z))
     if verbose
-      chisq = sumabs2(Y-X*Z)
+      chisq = sum(abs2,Y-X*Z)
       print("# ", k, " ", gamma,": ")
-      print("Z norms= ", num_active, " ", sumabs(Z), " ", sumabs2(Z), " chi^2= ", chisq, " ")
+      print("Z norms= ", num_active, " ", sum(abs,Z), " ", sum(abs2,Z), " chi^2= ", chisq, " ")
       #print("B=",B," Z=",Z," U=",U," ")
       println("")
     end
-    if sumabs2(Z) == 0. || num_active < min_active
+    if sum(abs2,Z) == 0. || num_active < min_active
       last_itteration = k
       break
     end
@@ -82,7 +82,7 @@ function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2}
     Z[idx_active,col] = vec(Bact)
   end
   pred = X*Z
-  chisq = sumabs2(Y-pred)
+  chisq = sum(abs2,Y-pred)
   return ( Z,chisq )
 end
 
@@ -91,7 +91,7 @@ function refit_arp_slr_2d{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Array{T,2}
   @assert size(X) == size(Xcv)
   @assert size(Y) == size(Ycv)
   (Z, chisq_refit) = refit_arp_slr_2d(X,Y,B)
-  chisq_cv = sumabs2(Ycv-Xcv*Z)
+  chisq_cv = sum(abs2,Ycv-Xcv*Z)
   return (Z,chisq_refit, chisq_cv )
 end
 
@@ -104,7 +104,7 @@ function refit_arp_slr_2d_nonlin{T<:Number}(X::Array{T,2}, Y::Array{T,2}, B::Arr
   p = size(X,2)
 
   # Function to minimize
-  score(Z::Array{T,2}) = sumabs2(Y-X*Z)
+  score(Z::Array{T,2}) = sum(abs2,Y-X*Z)
   idx_active = find(B)
   function score(param::Array{Float64,1})
      Z = copy(B)
