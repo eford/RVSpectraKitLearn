@@ -37,7 +37,7 @@ function make_noisy_spectrum{T<:Real}(spec::Array{T,1}, snr::T; sampling::T = 1.
   snr_per_pixel = float(snr) / sqrt(sampling)
   orig_mean = mean(spec)
   scaled_spec = spec*snr*snr/orig_mean
-  noisy_spec = scaled_spec + randn(length(spec)).*sqrt(scaled_spec) #  np.random.normal(scaled_spec,np.sqrt(scaled_spec))
+  noisy_spec = scaled_spec + randn(length(spec)).*sqrt.(scaled_spec) #  np.random.normal(scaled_spec,np.sqrt.(scaled_spec))
   return orig_mean*noisy_spec/(snr*snr)
 end
 

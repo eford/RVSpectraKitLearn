@@ -247,7 +247,7 @@ function calc_gp_on_segments{T}(predict_gp::Function, lambda::AbstractArray{T,1}
                                 sigmasq_obs::AbstractArray{T,1} = 1e-16*ones(length(lambda)),	sigmasq_cor::T = 1.0, rho::T = 1.0,
                                 half_chunck_size::Integer = 100)
   @assert length(lambda) == length(flux) == length(sigmasq_obs)
-  output = Array(Float64,length(lambda))
+  output = Array{Float64}(length(lambda))
   num_seg = convert(Int64,ceil(length(lambda)/half_chunck_size)-1)
   for i in 1:num_seg
     idx_begin = 1+half_chunck_size*(i-1)

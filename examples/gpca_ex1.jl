@@ -10,7 +10,7 @@ cd(path_to_spectra)
 
 sampling = 3.0
 planet_amplitude = 10.0
-rvs_true = -planet_amplitude*cos(2pi*phases)
+rvs_true = -planet_amplitude*cos.(2pi*phases)
 
 snr = 100.0
 obs = RvSpectraKitLearn.make_noisy_spectra(obs_noisefree,snr,sampling=sampling)

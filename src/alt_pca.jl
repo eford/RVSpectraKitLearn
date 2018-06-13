@@ -26,7 +26,7 @@ function compute_pca_component!{T}(X::AbstractArray{T,2}, r::AbstractArray{T,1},
 	for i in 1:num_spectra
 	   BLAS.axpy!(dot(view(X,:,i),r),view(X,:,i),s)         # s += dot(X[:,i],r)*X[:,i]
 	end
-	mag_s = sqrt(sumabs2(s))
+	mag_s = sqrt(sum(abs2,s))
 	r[:]  = s/mag_s
 	if abs(mag_s-last_mag_s) < tol*mag_s break end
 	last_mag_s = mag_s
@@ -69,26 +69,26 @@ function fit_pca_eford{T}(X::Array{T,2}; num_components::Integer=4, tol::Float64
   scores = zeros(num_spectra,num_components)
   mu = vec(mean(X,2))
   Xtmp = X.-mu                               # perform PCA after subtracting off mean
-  totalvar = sumabs2(Xtmp)
-  #println("# j = ", 0, " sumabs2(Xtmp) = ", totalvar)
+  totalvar = sum(abs2,Xtmp)
+  #println("# j = ", 0, " sum(abs2,Xtmp) = ", totalvar)
   compute_pca_component!(Xtmp,view(M,:,1),s,tol=tol)  # compute first component separately, since generalized algorithm will need to
   fracvar = zeros(num_components)
   compute_pca_component!(Xtmp,view(M,:,1),s,tol=tol)
   for j in 2:num_components
 	  for i in 1:num_spectra
-      scores[i,j-1] = dot(view(Xtmp,:,i),view(M,:,j-1)) #/sumabs2(view(M,:,j-1))
+      scores[i,j-1] = dot(view(Xtmp,:,i),view(M,:,j-1)) #/sum(abs2,view(M,:,j-1))
       Xtmp[:,i] .-= scores[i,j-1]*view(M,:,j-1)
 	  end
-    fracvar[j-1] = sumabs2(Xtmp)/totalvar
-    println("# j = ", j-1, " sumabs2(Xtmp) = ", sumabs2(Xtmp), " frac_var_remain= ", fracvar[j-1] )
+    fracvar[j-1] = sum(abs2,Xtmp)/totalvar
+    println("# j = ", j-1, " sum(abs2,Xtmp) = ", sum(abs2,Xtmp), " frac_var_remain= ", fracvar[j-1] )
 	  compute_pca_component!(Xtmp,view(M,:,j),s,tol=tol,max_it=max_it)
   end
 	for i in 1:num_spectra
        scores[i,num_components] = dot(view(Xtmp,:,i),view(M,:,num_components))
        Xtmp[:,i] .-= scores[i,num_components]*view(M,:,num_components)
 	end
-  fracvar[num_components] = sumabs2(Xtmp)/totalvar
-  println("# j = ", num_components, " sumabs2(Xtmp) = ", sumabs2(Xtmp), " fracvar= ", fracvar[num_components] )
+  fracvar[num_components] = sum(abs2,Xtmp)/totalvar
+  println("# j = ", num_components, " sum(abs2,Xtmp) = ", sum(abs2,Xtmp), " fracvar= ", fracvar[num_components] )
 	return (mu,M,scores)
 end
 
